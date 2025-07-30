@@ -1,0 +1,39 @@
+.edit-product-container {
+  max-width: 600px;
+  margin: auto;
+  padding: 20px;
+  background: #fff;
+  box-shadow: 0 0 10px rgba(0,0,0,0.2);
+  border-radius: 8px;
+}
+
+.edit-product-form {
+  display: flex;
+  flex-direction: column;
+}
+
+.edit-product-form input,
+.edit-product-form button {
+  margin-bottom: 15px;
+  padding: 10px;
+  font-size: 16px;
+}
+
+.edit-product-form button {
+  background-color: #4a148c;
+  color: #fff;
+  border: none;
+  cursor: pointer;
+}
+
+.edit-img-preview-container {
+  text-align: center;
+  margin: 10px 0;
+}
+
+.edit-img-preview {
+  width: 150px;
+  height: auto;
+  border-radius: 4px;
+  object-fit: contain;
+}

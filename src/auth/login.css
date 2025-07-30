@@ -1,0 +1,79 @@
+/* Global styles */
+body, html {
+  height: 100%;
+  margin: 0;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background-color: #f3f4f6; /* Equivalent to bg-gray-100 */
+}
+
+/* Login container */
+.login-container {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+}
+
+/* Login box */
+.login-box {
+  width: 100%;
+  max-width: 400px;
+  background-color: #fff;
+  padding: 2rem;
+  border-radius: 0.5rem;
+  box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+}
+
+/* Heading */
+.login-heading {
+  text-align: center;
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: #6b21a8; /* text-purple-700 */
+  margin-bottom: 1.5rem;
+}
+
+/* Form inputs */
+.login-input {
+  width: 100%;
+  padding: 0.5rem 1rem;
+  border: 1px solid #d1d5db; /* border-gray-300 */
+  border-radius: 0.375rem;
+  margin-bottom: 1rem;
+  outline: none;
+}
+
+.login-input:focus {
+  border-color: #9333ea; /* focus:ring-purple-500 */
+  box-shadow: 0 0 0 2px rgba(147, 51, 234, 0.3);
+}
+
+/* Submit button */
+.login-button {
+  width: 100%;
+  padding: 0.5rem;
+  background-color: #6b21a8; /* bg-purple-700 */
+  color: white;
+  border: none;
+  border-radius: 0.375rem;
+  cursor: pointer;
+  transition: background-color 0.2s ease-in-out;
+}
+
+.login-button:hover {
+  background-color: #581c87; /* hover:bg-purple-800 */
+}
+
+/* Forgot password link */
+.forgot-password {
+  margin-top: 1rem;
+  text-align: center;
+  font-size: 0.875rem;
+  color: #7e22ce;
+  cursor: pointer;
+}
+
+.forgot-password:hover {
+  text-decoration: underline;
+}
