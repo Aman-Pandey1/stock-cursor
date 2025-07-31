@@ -27,7 +27,7 @@ const AlertNotification = () => {
   };
 
   const sendWhatsAppAlert = (product) => {
-    const phoneNumber = '8429205391'; // Replace with your desired number
+    const phoneNumber = '7250519404'; // Replace with your desired number
     const message = `Low Stock Alert!\n\n*Product:* ${product.companyName} - ${product.modelNo}\n*Current Qty:* ${product.quantity}\n*Alert Qty:* ${product.alertQty}\n*SKU:* ${product.sku}\n\nPlease restock soon!`;
     const encodedMessage = encodeURIComponent(message);
     const whatsappUrl = `https://wa.me/${phoneNumber}?text=${encodedMessage}`;
@@ -37,7 +37,7 @@ const AlertNotification = () => {
 
   useEffect(() => {
     fetchLowStockProducts();
-    const interval = setInterval(fetchLowStockProducts, 300000);
+    const interval = setInterval(fetchLowStockProducts, 2000);
     return () => clearInterval(interval);
   }, []);
 
