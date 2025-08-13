@@ -1,0 +1,293 @@
+.stock-outflow-container {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 20px;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+h2 {
+  color: #2c3e50;
+  text-align: center;
+  margin-bottom: 30px;
+  font-size: 28px;
+}
+
+.sales-entry-section, .sales-reports-section {
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  padding: 20px;
+  margin-bottom: 20px;
+}
+
+.sales-entry-section h3 {
+  color: #3498db;
+  margin-top: 0;
+  margin-bottom: 20px;
+  font-size: 20px;
+}
+
+.form-group {
+  margin-bottom: 15px;
+}
+
+.search-input {
+  width: 100%;
+  padding: 12px 15px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 16px;
+  transition: border-color 0.3s;
+}
+
+.search-input:focus {
+  border-color: #3498db;
+  outline: none;
+}
+
+.product-results {
+  max-height: 300px;
+  overflow-y: auto;
+  border: 1px solid #eee;
+  border-radius: 4px;
+  margin-bottom: 15px;
+}
+
+.product-item {
+  padding: 12px 15px;
+  border-bottom: 1px solid #eee;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.product-item:hover {
+  background-color: #f8f9fa;
+}
+
+.product-item.selected {
+  background-color: #e3f2fd;
+  border-left: 3px solid #3498db;
+}
+
+.product-info {
+  flex: 1;
+}
+
+.product-stock {
+  color: #7f8c8d;
+  font-size: 14px;
+}
+
+.sale-entry-form {
+  margin-top: 20px;
+  padding: 15px;
+  background-color: #f8f9fa;
+  border-radius: 4px;
+}
+
+.sale-entry-form h4 {
+  margin-top: 0;
+  margin-bottom: 15px;
+  color: #2c3e50;
+}
+
+.product-name {
+  color: #3498db;
+}
+
+.product-model {
+  color: #e74c3c;
+}
+
+.form-row {
+  display: flex;
+  gap: 10px;
+}
+
+.form-row input {
+  flex: 1;
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+.confirm-btn {
+  background-color: #2ecc71;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: background-color 0.2s;
+}
+
+.confirm-btn:hover {
+  background-color: #27ae60;
+}
+
+.confirm-btn:disabled {
+  background-color: #95a5a6;
+  cursor: not-allowed;
+}
+
+.message {
+  padding: 10px 15px;
+  border-radius: 4px;
+  margin: 15px 0;
+  font-weight: bold;
+}
+
+.message.error {
+  background-color: #fdecea;
+  color: #e74c3c;
+  border-left: 3px solid #e74c3c;
+}
+
+.message.success {
+  background-color: #e8f5e9;
+  color: #2ecc71;
+  border-left: 3px solid #2ecc71;
+}
+
+.tabs {
+  display: flex;
+  margin-bottom: 20px;
+  border-bottom: 1px solid #ddd;
+}
+
+.tab-btn {
+  padding: 10px 20px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 16px;
+  color: #7f8c8d;
+  position: relative;
+}
+
+.tab-btn.active {
+  color: #3498db;
+  font-weight: bold;
+}
+
+.tab-btn.active::after {
+  content: '';
+  position: absolute;
+  bottom: -1px;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background-color: #3498db;
+}
+
+.report-actions {
+  text-align: right;
+  margin-bottom: 15px;
+}
+
+.download-btn {
+  background-color: #3498db;
+  color: white;
+  border: none;
+  padding: 8px 15px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background-color 0.2s;
+}
+
+.download-btn:hover {
+  background-color: #2980b9;
+}
+
+.sales-table {
+  border: 1px solid #eee;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.table-header, .table-row, .table-footer {
+  display: grid;
+  grid-template-columns: 2fr 2fr 1fr;
+  padding: 12px 15px;
+  align-items: center;
+}
+
+.weekly-sales .table-header, 
+.weekly-sales .table-row, 
+.weekly-sales .table-footer {
+  grid-template-columns: 2fr 2fr 1fr 1fr;
+}
+
+.table-header {
+  background-color: #3498db;
+  color: white;
+  font-weight: bold;
+}
+
+.table-row {
+  border-bottom: 1px solid #eee;
+}
+
+.table-row:nth-child(even) {
+  background-color: #f8f9fa;
+}
+
+.table-footer {
+  background-color: #ecf0f1;
+  font-weight: bold;
+}
+
+.sold-qty {
+  color: #e74c3c;
+  font-weight: bold;
+}
+
+.total-qty {
+  color: #2ecc71;
+  font-weight: bold;
+}
+
+.no-data {
+  text-align: center;
+  color: #7f8c8d;
+  padding: 20px;
+}
+.product-item.exact-match {
+  border-left: 4px solid #2ecc71;
+  background-color: rgba(46, 204, 113, 0.05);
+}
+
+.exact-match-badge {
+  margin-left: 8px;
+  padding: 2px 6px;
+  background-color: #2ecc71;
+  color: white;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  font-weight: normal;
+}
+.product-results {
+  display: flex;
+  flex-direction: column;
+}
+
+.exact-match {
+  order: -1;
+  border-left: 3px solid #27ae60;
+  background-color: rgba(39, 174, 96, 0.1);
+}
+
+.exact-match-tag {
+  margin-left: 8px;
+  padding: 2px 6px;
+  background-color: #27ae60;
+  color: white;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: normal;
+}

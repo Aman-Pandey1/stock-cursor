@@ -1,251 +1,181 @@
+/* Dashboard.css */
+:root {
+  --primary: #6b21a8;
+  --secondary: #3498db;
+  --danger: #e74c3c;
+  --warning: #f39c12;
+  --success: #2ecc71;
+  --dark: #2c3e50;
+  --light: #ecf0f1;
+  --gray: #95a5a6;
+  --white: #ffffff;
+  --shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
 /* Layout */
 .dashboard-container {
   display: flex;
-  height: 100vh;
-  font-family: Arial, sans-serif;
-}
-
-/* Sidebar */
-.sidebar {
-  width: 220px;
-  background-color: #6520A4;
-  color: #fff;
-  padding: 20px;
-  height: 100vh;
-}
-
-.logo {
-  font-size: 20px;
-  margin-bottom: 30px;
-  font-weight: bold;
-}
-
-.sidebar-nav {
-  display: flex;
-  flex-direction: column;
-}
-
-.nav-link {
-  padding: 10px 0;
-  color: white;
-  text-decoration: none;
-  border-bottom: 1px solid #333;
-}
-
-.nav-link:hover,
-.nav-link.active {
-  background-color: #ffff;
-  color: #000;
+  min-height: 100vh;
+  font-family: 'Poppins', sans-serif;
 }
 
 /* Main Content */
 .dashboard-content {
-  flex-grow: 1;
-  padding: 20px;
+  flex: 1;
+  background-color: #f5f7fa;
   overflow-y: auto;
-  background-color: #f5f5f5;
-}
-
-/* Dashboard Page */
-.dashboard-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 20px;
-}
-
-.search-input {
-  padding: 8px 12px;
-  border-radius: 5px;
-  border: 1px solid #ccc;
-}
-
-.no-alerts {
-  color: #666;
-}
-/* Reset and base styles */
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-}
-
-body {
-  background-color: #f5f5f5;
   padding: 20px;
-}
-
-/* Dashboard layout */
-.dashboard {
-  max-width: 1200px;
-  margin: 0 auto;
-  background-color: white;
-  border-radius: 10px;
-  box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
-  overflow: hidden;
 }
 
 .dashboard-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 20px;
-  background-color: #6520A4;
-  color: white;
+  margin-bottom: 30px;
+  flex-wrap: wrap;
 }
 
 .dashboard-header h1 {
-  font-size: 24px;
+  color: var(--dark);
+  font-size: 1.8rem;
+  margin-bottom: 15px;
 }
 
-/* Search bar */
-.search-bar {
+.search-container {
   display: flex;
-  align-items: center;
+  width: 100%;
+  max-width: 400px;
 }
 
-.search-bar input {
-  padding: 8px 12px;
-  border: none;
-  border-radius: 4px 0 0 4px;
-  font-size: 14px;
-  width: 200px;
+.search-input {
+  flex: 1;
+  padding: 10px 15px;
+  border: 1px solid #ddd;
+  border-radius: 5px 0 0 5px;
+  font-size: 0.9rem;
 }
 
-.search-bar button {
-  padding: 8px 12px;
-  background-color: #ff6b6b;
+.search-btn {
+  padding: 10px 15px;
+  background-color: var(--primary);
   color: white;
   border: none;
-  border-radius: 0 4px 4px 0;
+  border-radius: 0 5px 5px 0;
   cursor: pointer;
-  font-size: 14px;
-  transition: background-color 0.3s;
 }
 
-.search-bar button:hover {
-  background-color: #ff5252;
-}
-
-/* Stats cards */
-.stats-container {
+/* Stats Grid */
+.stats-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
   gap: 20px;
-  padding: 20px;
+  margin-bottom: 30px;
 }
 
 .stat-card {
+  background-color: var(--white);
+  border-radius: 10px;
+  padding: 20px;
+  box-shadow: var(--shadow);
   display: flex;
-  background-color: white;
-  border-radius: 8px;
-  padding: 15px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-  transition: transform 0.3s, box-shadow 0.3s;
+  align-items: center;
+  transition: transform 0.3s ease;
 }
 
 .stat-card:hover {
   transform: translateY(-5px);
-  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
 }
 
 .stat-icon {
-  font-size: 32px;
-  margin-right: 15px;
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
   display: flex;
   align-items: center;
+  justify-content: center;
+  margin-right: 15px;
+  font-size: 1.2rem;
+  color: white;
 }
 
-.stat-info h3 {
-  font-size: 16px;
-  color: #666;
+.stat-card.purple .stat-icon {
+  background-color: var(--primary);
+}
+
+.stat-card.blue .stat-icon {
+  background-color: var(--secondary);
+}
+
+.stat-card.orange .stat-icon {
+  background-color: var(--warning);
+}
+
+.stat-card.green .stat-icon {
+  background-color: var(--success);
+}
+
+.stat-content h3 {
+  font-size: 0.9rem;
+  color: var(--gray);
   margin-bottom: 5px;
 }
 
 .stat-value {
-  font-size: 24px;
-  font-weight: bold;
-  color: #333;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--dark);
   margin-bottom: 5px;
 }
 
 .stat-trend {
-  font-size: 14px;
-  color: #4CAF50; /* Green for positive trend */
+  font-size: 0.8rem;
+}
+
+.stat-trend.positive {
+  color: var(--success);
 }
 
 .stat-trend.negative {
-  color: #F44336; /* Red for negative trend */
+  color: var(--danger);
 }
 
-/* Chart section */
-.chart-container {
-  padding: 20px;
-  margin-top: 20px;
-  background-color: white;
-  border-radius: 8px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+.warning {
+  border-left: 4px solid var(--warning);
 }
 
-.chart-container h2 {
-  color: #333;
-  margin-bottom: 15px;
-  font-size: 20px;
+/* Banner */
+.banner-container {
+  margin-top: 30px;
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: var(--shadow);
 }
 
-.chart-placeholder {
-  height: 300px;
-  background-color: #f9f9f9;
-  border-radius: 8px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #888;
+.dashboard-banner {
+  width: 100%;
+  height: auto;
+  display: block;
 }
 
-/* Responsive adjustments */
+/* Responsive */
 @media (max-width: 768px) {
+  .dashboard-container {
+    flex-direction: column;
+  }
+  
   .dashboard-header {
     flex-direction: column;
     align-items: flex-start;
   }
-
-  .search-bar {
-    margin-top: 15px;
+  
+  .search-container {
     width: 100%;
-  }
-
-  .search-bar input {
-    flex-grow: 1;
-    width: auto;
-  }
-
-  .stats-container {
-    grid-template-columns: 1fr 1fr;
+    margin-top: 15px;
   }
 }
 
-@media (max-width: 480px) {
-  .stats-container {
+@media (max-width: 576px) {
+  .stats-grid {
     grid-template-columns: 1fr;
   }
-}
-/* Logout button styling */
-.logout-button {
-  background-color: white;
-  color: #007BFF;
-  border: 1px solid #007BFF;
-  border-radius: 8px;
-  padding: 8px 16px;
-  margin-top: 20px;
-  font-weight: bold;
-  cursor: pointer;
-  transition: background-color 0.3s ease, color 0.3s ease;
-}
-
-/* Hover effect */
-.logout-button:hover {
-  background-color: #007BFF;
-  color: white;
 }

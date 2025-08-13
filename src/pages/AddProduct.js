@@ -6,7 +6,8 @@ const AddProduct = () => {
   const [data, setData] = useState({
     companyName: '',
     modelNo: '',
-    sku: '',
+    invoiceNo: '',
+    invoiceDate: '',
     size: '',
     color: '',
     design: '',
@@ -26,84 +27,99 @@ const AddProduct = () => {
     }));
   };
 
-const handleSubmit = async () => {
-  if (!image) return alert("Please upload an image");
+  const handleSubmit = async () => {
+    if (!data.invoiceDate) return alert("Please select invoice date");
+    if (!data.modelNo.trim()) return alert("Model Number is required");
+    setLoading(true);
 
-  setLoading(true);
+    try {
+      let imageData = null;
 
-  try {
-    // 1. Upload image to Cloudinary
-    const formData = new FormData();
-    formData.append("file", image);
-    formData.append("upload_preset", "ml_default"); // Make sure this matches your Cloudinary preset
-    
-    // Add timestamp and signature if needed (for unsigned uploads)
-    // formData.append("timestamp", (Date.now() / 1000) | 0);
-    // formData.append("signature", yourSignature); 
+      // If image is provided, upload to Cloudinary
+      if (image) {
+        const formData = new FormData();
+        formData.append("file", image);
+        formData.append("upload_preset", "ml_default");
 
-    const cloudRes = await fetch(
-      `https://api.cloudinary.com/v1_1/dqibmkvib/image/upload`, // Replace YOUR_CLOUD_NAME
-      {
-        method: "POST",
-        body: formData,
+        const cloudRes = await fetch(
+          `https://api.cloudinary.com/v1_1/dqibmkvib/image/upload`,
+          { method: "POST", body: formData }
+        );
+        const cloudData = await cloudRes.json();
+
+        imageData = {
+          url: cloudData.secure_url,
+          public_id: cloudData.public_id,
+        };
       }
-    );
 
-    if (!cloudRes.ok) {
-      const errorData = await cloudRes.json();
-      throw new Error(errorData.message || "Failed to upload image");
-    }
-
-    const cloudData = await cloudRes.json();
-
-    // 2. Prepare payload for your backend
-    const payload = {
-      companyName: data.companyName,
-      modelNo: data.modelNo,
-      sku: data.sku,
-      quantity: Number(data.quantity),
-      alertQty: Number(data.alertQty),
-      imageUrl: cloudData.secure_url,
-      publicId: cloudData.public_id,
-      // Add other fields your backend expects
-      size: data.size,
-      color: data.color,
-      design: data.design,
-      type: data.type
-    };
-
-    // 3. Send to your backend
-    await API.post("/products/create", payload);
-
-    alert("✅ Product added successfully!");
-    // Reset form
-    setData({
-      companyName: '',
-      modelNo: '',
-      sku: '',
-      size: '',
-      color: '',
-      design: '',
-      type: '',
-      quantity: '',
-      alertQty: '',
-    });
-    setImage(null);
-  } catch (error) {
-    console.error("Error:", error);
-    alert(`❌ Error: ${error.message}`);
-  } finally {
-    setLoading(false);
-  }
+      // Prepare payload
+      const payload = {
+  companyName: data.companyName,
+  modelNo: data.modelNo || '', // optional
+  invoiceNo: data.invoiceNo || '', // optional
+  invoiceDate: data.invoiceDate,
+  size: data.size,
+  color: data.color,
+  design: data.design,
+  type: data.type,
+  quantity: Number(data.quantity),
+  alertQty: Number(data.alertQty),
 };
+
+if (imageData) payload.image = imageData;
+
+
+      // Send to backend
+      await API.post("/products", payload, {
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+      });
+
+      alert("Product added successfully!");
+      // Reset form if needed
+
+    } catch (error) {
+      console.error("Error:", error);
+      alert(`Error: ${error.response?.data?.message || error.message}`);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <div className="add-product-container">
       <h2 className="add-product-title">Add Product</h2>
       <div className="form-grid">
         <input className="form-input" name="companyName" placeholder="Company Name" value={data.companyName} onChange={handleChange} />
-        <input className="form-input" name="modelNo" placeholder="Model Number" value={data.modelNo} onChange={handleChange} />
-        <input className="form-input" name="sku" placeholder="SKU" value={data.sku} onChange={handleChange} />
+        <input
+  className="form-input"
+  name="modelNo"
+  placeholder="Model Number"
+  value={data.modelNo}
+  onChange={handleChange}
+  required
+/>
+
+
+<input
+  className="form-input"
+  name="invoiceNo"
+  placeholder="Invoice Number"
+  value={data.invoiceNo}
+  onChange={handleChange}
+/>
+
+        <input 
+          className="form-input" 
+          type="date" 
+          name="invoiceDate" 
+          placeholder="Invoice Date" 
+          value={data.invoiceDate} 
+          onChange={handleChange} 
+        />
         <input className="form-input" name="size" placeholder="Size" value={data.size} onChange={handleChange} />
         <input className="form-input" name="color" placeholder="Color" value={data.color} onChange={handleChange} />
         <input className="form-input" name="design" placeholder="Design" value={data.design} onChange={handleChange} />

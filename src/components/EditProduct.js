@@ -9,7 +9,8 @@ const EditProduct = () => {
   const [product, setProduct] = useState({
     companyName: '',
     modelNo: '',
-    sku: '',
+    invoiceNo: '',
+    invoiceDate: '',
     size: '',
     color: '',
     design: '',
@@ -27,7 +28,10 @@ const EditProduct = () => {
     const fetchProduct = async () => {
       try {
         const res = await API.get(`/products/${id}`);
-        setProduct(res.data);
+        setProduct({
+          ...res.data,
+          invoiceDate: res.data.invoiceDate.split('T')[0] // Format date for input
+        });
       } catch (error) {
         console.error('Error fetching product:', error);
       }
@@ -81,13 +85,16 @@ const EditProduct = () => {
       const updatedProduct = {
         ...product,
         quantity: Number(product.quantity),
-        alertQty: Number(product.alertQty)
+        alertQty: Number(product.alertQty),
+        invoiceDate: new Date(product.invoiceDate).toISOString()
       };
 
       await API.put(`/products/${id}`, updatedProduct);
+      alert('Product updated successfully!');
       navigate('/product-list');
     } catch (error) {
       console.error('Error updating product:', error);
+      alert(`Error updating product: ${error.message}`);
     }
   };
 
@@ -95,26 +102,83 @@ const EditProduct = () => {
     <div className="edit-product-container">
       <h2>Edit Product</h2>
       <form onSubmit={handleUpdate} className="edit-product-form">
-        <input type="text" name="companyName" value={product.companyName} onChange={handleChange} placeholder="Company Name" required />
-        <input type="text" name="modelNo" value={product.modelNo} onChange={handleChange} placeholder="Model No" required />
-        <input type="text" name="sku" value={product.sku} onChange={handleChange} placeholder="SKU" required />
-        <input type="text" name="size" value={product.size} onChange={handleChange} placeholder="Size" />
-        <input type="text" name="color" value={product.color} onChange={handleChange} placeholder="Color" />
-        <input type="text" name="design" value={product.design} onChange={handleChange} placeholder="Design" />
-        <input type="text" name="type" value={product.type} onChange={handleChange} placeholder="Type" />
-        <input type="number" name="quantity" value={product.quantity} onChange={handleChange} placeholder="Quantity" required />
-        <input type="number" name="alertQty" value={product.alertQty} onChange={handleChange} placeholder="Alert Quantity" required />
-
-        <label>Upload New Image (optional):</label>
-        <input type="file" accept="image/*" onChange={handleImageChange} />
-
-        {product.image?.url && (
-          <div className="edit-img-preview-container">
-            <img src={product.image.url} alt="Current Product" className="edit-img-preview" />
+        <div className="form-row">
+          <div className="form-group">
+            <label>Company Name</label>
+            <input type="text" name="companyName" value={product.companyName} onChange={handleChange} required />
           </div>
-        )}
+          <div className="form-group">
+            <label>Model No</label>
+            <input type="text" name="modelNo" value={product.modelNo} onChange={handleChange} required />
+          </div>
+        </div>
 
-        <button type="submit">Update Product</button>
+        <div className="form-row">
+          <div className="form-group">
+            <label>Invoice No</label>
+            <input type="text" name="invoiceNo" value={product.invoiceNo} onChange={handleChange} required />
+          </div>
+          <div className="form-group">
+            <label>Invoice Date</label>
+            <input type="date" name="invoiceDate" value={product.invoiceDate} onChange={handleChange} required />
+          </div>
+        </div>
+
+        <div className="form-row">
+          <div className="form-group">
+            <label>Size</label>
+            <input type="text" name="size" value={product.size} onChange={handleChange} />
+          </div>
+          <div className="form-group">
+            <label>Color</label>
+            <input type="text" name="color" value={product.color} onChange={handleChange} />
+          </div>
+        </div>
+
+        <div className="form-row">
+          <div className="form-group">
+            <label>Design</label>
+            <input type="text" name="design" value={product.design} onChange={handleChange} />
+          </div>
+          <div className="form-group">
+            <label>Type</label>
+            <input type="text" name="type" value={product.type} onChange={handleChange} />
+          </div>
+        </div>
+
+        <div className="form-row">
+          <div className="form-group">
+            <label>Quantity</label>
+            <input type="number" name="quantity" value={product.quantity} onChange={handleChange} required />
+          </div>
+          <div className="form-group">
+            <label>Alert Quantity</label>
+            <input type="number" name="alertQty" value={product.alertQty} onChange={handleChange} required />
+          </div>
+        </div>
+
+        <div className="form-group">
+          <label>Current Image</label>
+          {product.image?.url && (
+            <div className="edit-img-preview-container">
+              <img src={product.image.url} alt="Current Product" className="edit-img-preview" />
+            </div>
+          )}
+        </div>
+
+        <div className="form-group">
+          <label>Upload New Image (optional)</label>
+          <input type="file" accept="image/*" onChange={handleImageChange} />
+        </div>
+
+        <div className="form-actions">
+          <button type="button" className="cancel-btn" onClick={() => navigate('/product-list')}>
+            Cancel
+          </button>
+          <button type="submit" className="update-btn">
+            Update Product
+          </button>
+        </div>
       </form>
     </div>
   );
