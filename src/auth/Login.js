@@ -83,9 +83,9 @@ function Login() {
           <span className="forgot-password" onClick={handleForgotPassword}>
             Forgot password?
           </span>
-          {/* <span className="signup-link" onClick={handleSignup}>
+           <span className="signup-link" onClick={handleSignup}>
             Create an account
-          </span> */}
+          </span> 
         </div>
       </div>
     </div>

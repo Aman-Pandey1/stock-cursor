@@ -14,6 +14,13 @@ import AlertNotification from './components/AlertNotification';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import StockOutflow from './components/StockOutflow';
+import ProductDetails from './components/ProductDetails';
+import SalesReports from './components/SalesReport';
+import PurchaseManagement from './components/PurchaseManagement';
+import PurchaseReport from './components/PurchaseReport';
+import ReturnManagement from './components/ReturnManagement';
+import ReturnReport from './components/ReturnReport';
+
 
 function App() {
   return (
@@ -35,6 +42,12 @@ function App() {
               <Route path="admins" element={<AdminList />} />
               <Route path="edit-product/:id" element={<EditProduct />} />
               <Route path="/reduce-stock" element={<StockOutflow/>} />
+              <Route path="/product-details/:id" element={<ProductDetails/>} />
+               <Route path="/sales-reports" element={<SalesReports/>} />
+              <Route path="/purchase" element={<PurchaseManagement/>} />
+              <Route path="/purchase-report" element={<PurchaseReport/>} />
+              <Route path="/return" element={<ReturnManagement/>} />
+              <Route path="/return-report" element={<ReturnReport/>} />
             </Route>
           </Route>
         </Routes>

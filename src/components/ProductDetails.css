@@ -1,0 +1,618 @@
+.product-details-container {
+  padding: 2rem;
+  max-width: 1200px;
+  margin: 0 auto;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  color: #333;
+}
+
+.back-button {
+  background: #4f46e5;
+  color: white;
+  border: none;
+  padding: 0.6rem 1.2rem;
+  border-radius: 6px;
+  cursor: pointer;
+  margin-bottom: 1.5rem;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: background 0.2s;
+}
+
+.back-button:hover {
+  background: #4338ca;
+}
+
+.product-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 2rem;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.product-header h2 {
+  margin: 0;
+  font-size: 1.8rem;
+  color: #111827;
+}
+
+.product-description {
+  color: #6b7280;
+  margin-top: 0.5rem;
+  font-size: 0.95rem;
+}
+
+.product-stats {
+  display: flex;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.stat-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background: #f9fafb;
+  padding: 1rem 1.5rem;
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+  min-width: 120px;
+}
+
+.stat-label {
+  font-size: 0.85rem;
+  color: #6b7280;
+  margin-bottom: 0.3rem;
+}
+
+.stat-value {
+  font-weight: 600;
+  font-size: 1.3rem;
+  color: #111827;
+}
+
+.product-attributes-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.attribute-card {
+  background: white;
+  padding: 1rem;
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+}
+
+.attribute-card .label {
+  display: block;
+  font-size: 0.85rem;
+  color: #6b7280;
+  margin-bottom: 0.3rem;
+}
+
+.attribute-card .value {
+  font-weight: 500;
+  color: #111827;
+}
+
+.sales-history-section {
+  margin-top: 2rem;
+}
+
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.total-sold-badge {
+  background: #f0fdf4;
+  color: #166534;
+  padding: 0.5rem 1rem;
+  border-radius: 20px;
+  font-weight: 600;
+  font-size: 0.9rem;
+  border: 1px solid #dcfce7;
+}
+
+.add-transaction-btn {
+  background: #4f46e5;
+  color: white;
+  border: none;
+  padding: 0.6rem 1.2rem;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: background 0.2s;
+}
+
+.add-transaction-btn:hover {
+  background: #4338ca;
+}
+
+.customer-sales-container {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.customer-group {
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  overflow: hidden;
+  background: white;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+}
+
+.customer-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 1.5rem;
+  background: #f9fafb;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.customer-header h4 {
+  margin: 0;
+  font-size: 1.1rem;
+  color: #111827;
+}
+
+.total-sold {
+  font-weight: 600;
+  color: #166534;
+  background: #f0fdf4;
+  padding: 0.3rem 0.8rem;
+  border-radius: 20px;
+  font-size: 0.9rem;
+}
+
+.sales-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.sales-table th {
+  padding: 0.8rem 1rem;
+  text-align: left;
+  background-color: #f9fafb;
+  font-weight: 600;
+  color: #4b5563;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.sales-table td {
+  padding: 0.8rem 1rem;
+  border-bottom: 1px solid #e5e7eb;
+  font-size: 0.95rem;
+}
+
+.quantity-cell {
+  font-weight: 600;
+  color: #b91c1c;
+}
+
+.notes-cell {
+  color: #6b7280;
+  max-width: 250px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.actions-cell {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.edit-btn, .delete-btn {
+  padding: 0.4rem 0.8rem;
+  border-radius: 4px;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.edit-btn {
+  background: #e0f2fe;
+  color: #0369a1;
+  border: 1px solid #bae6fd;
+}
+
+.edit-btn:hover {
+  background: #bae6fd;
+}
+
+.delete-btn {
+  background: #fee2e2;
+  color: #b91c1c;
+  border: 1px solid #fecaca;
+}
+
+.delete-btn:hover {
+  background: #fecaca;
+}
+
+.no-sales-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  padding: 3rem 2rem;
+  background: #f9fafb;
+  border-radius: 8px;
+  border: 1px dashed #e5e7eb;
+  text-align: center;
+  color: #6b7280;
+}
+
+/* Modal Styles */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0,0,0,0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.edit-modal {
+  background: white;
+  padding: 2rem;
+  border-radius: 8px;
+  width: 100%;
+  max-width: 500px;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+}
+
+.edit-modal h3 {
+  margin-top: 0;
+  margin-bottom: 1.5rem;
+  color: #111827;
+}
+
+.form-group {
+  margin-bottom: 1.2rem;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: 500;
+  color: #374151;
+}
+
+.form-group input, 
+.form-group textarea {
+  width: 100%;
+  padding: 0.6rem 0.8rem;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-size: 1rem;
+}
+
+.form-group textarea {
+  min-height: 80px;
+  resize: vertical;
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 1rem;
+  margin-top: 1.5rem;
+}
+
+.cancel-btn, .save-btn {
+  padding: 0.6rem 1.2rem;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: background 0.2s;
+}
+
+.cancel-btn {
+  background: #f3f4f6;
+  color: #374151;
+  border: 1px solid #e5e7eb;
+}
+
+.cancel-btn:hover {
+  background: #e5e7eb;
+}
+
+.save-btn {
+  background: #4f46e5;
+  color: white;
+  border: none;
+}
+
+.save-btn:hover {
+  background: #4338ca;
+}
+
+.loading, .error, .not-found {
+  text-align: center;
+  padding: 3rem;
+  font-size: 1.1rem;
+}
+
+.error {
+  color: #b91c1c;
+  background: #fef2f2;
+  border-radius: 8px;
+}
+
+.not-found {
+  color: #6b7280;
+}
+/* Add these styles to your ProductDetails.css */
+
+/* Product Actions */
+.product-actions {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.edit-product-btn, 
+.delete-product-btn,
+.download-pdf-btn {
+  padding: 0.6rem 1.2rem;
+  border-radius: 6px;
+  font-weight: 500;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: all 0.2s;
+  border: none;
+  font-size: 0.9rem;
+}
+
+.edit-product-btn {
+  background: #3b82f6;
+  color: white;
+}
+
+.edit-product-btn:hover {
+  background: #2563eb;
+}
+
+.delete-product-btn {
+  background: #ef4444;
+  color: white;
+}
+
+.delete-product-btn:hover {
+  background: #dc2626;
+}
+
+.download-pdf-btn {
+  background: #10b981;
+  color: white;
+}
+
+.download-pdf-btn:hover {
+  background: #059669;
+}
+
+/* Modal Form Improvements */
+.edit-modal {
+  background: white;
+  padding: 2rem;
+  border-radius: 12px;
+  width: 90%;
+  max-width: 500px;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.edit-modal h3 {
+  margin-top: 0;
+  margin-bottom: 1.5rem;
+  color: #111827;
+  font-size: 1.5rem;
+  text-align: center;
+}
+
+.form-group {
+  margin-bottom: 1.2rem;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: 500;
+  color: #374151;
+  font-size: 0.9rem;
+}
+
+.form-group input, 
+.form-group textarea,
+.form-group select {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  font-size: 1rem;
+  transition: border-color 0.2s;
+}
+
+.form-group input:focus, 
+.form-group textarea:focus,
+.form-group select:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.form-group textarea {
+  min-height: 100px;
+  resize: vertical;
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 1rem;
+  margin-top: 2rem;
+  padding-top: 1rem;
+  border-top: 1px solid #e5e7eb;
+}
+
+.cancel-btn, 
+.save-btn {
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.2s;
+  font-size: 0.95rem;
+}
+
+.cancel-btn {
+  background: #f3f4f6;
+  color: #374151;
+  border: 1px solid #e5e7eb;
+}
+
+.cancel-btn:hover {
+  background: #e5e7eb;
+}
+
+.save-btn {
+  background: #3b82f6;
+  color: white;
+  border: none;
+}
+
+.save-btn:hover {
+  background: #2563eb;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .product-actions {
+    flex-direction: column;
+    width: 100%;
+  }
+  
+  .edit-product-btn,
+  .delete-product-btn,
+  .download-pdf-btn {
+    width: 100%;
+    justify-content: center;
+  }
+  
+  .edit-modal {
+    width: 95%;
+    padding: 1.5rem;
+  }
+}
+/* Add to ProductDetails.css */
+
+.size-box {
+  background-color: #f0f0f0;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  padding: 8px 12px;
+}
+
+.product-stats {
+  display: flex;
+  gap: 15px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.stat-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 10px;
+  min-width: 100px;
+}
+
+.customer-cell {
+  font-weight: 500;
+}
+
+.sales-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 15px;
+}
+
+.sales-table th {
+  background-color: #f5f5f5;
+  padding: 12px;
+  text-align: left;
+  border-bottom: 2px solid #ddd;
+}
+
+.sales-table td {
+  padding: 12px;
+  border-bottom: 1px solid #eee;
+}
+
+.quantity-cell {
+  font-weight: bold;
+  color: #e74c3c;
+}
+
+.notes-cell {
+  max-width: 250px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.actions-cell {
+  display: flex;
+  gap: 8px;
+}
+
+.edit-transaction-btn, .delete-transaction-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
+}
+
+.edit-transaction-btn:hover {
+  background-color: #f0f7ff;
+}
+
+.delete-transaction-btn:hover {
+  background-color: #ffecec;
+}

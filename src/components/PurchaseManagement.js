@@ -2,18 +2,16 @@
 
 import { useState, useEffect, useRef } from "react"
 import API from "../utils/api"
-import "./StockOutflow.css"
+import "./PurchaseManagement.css"
 import { format } from "date-fns"
-import { jsPDF } from "jspdf"
-import autoTable from "jspdf-autotable"
 import { useNavigate } from "react-router-dom"
 
-const StockOutflow = () => {
+const PurchaseManagement = () => {
   const [allProducts, setAllProducts] = useState([])
   const [products, setProducts] = useState([])
   const [selectedProducts, setSelectedProducts] = useState([])
-  const [currentCustomerName, setCurrentCustomerName] = useState("")
-  const [currentDate, setCurrentDate] = useState("")
+  const [currentSupplierName, setCurrentSupplierName] = useState("")
+  const [currentDate, setCurrentDate] = useState(format(new Date(), "yyyy-MM-dd"))
   const [currentNotes, setCurrentNotes] = useState("")
   const [message, setMessage] = useState("")
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -23,9 +21,6 @@ const StockOutflow = () => {
   })
   const [searchQuery, setSearchQuery] = useState("")
   const [isSearching, setIsSearching] = useState(false)
-  const [searchDate, setSearchDate] = useState("")
-  const [dateSearchResults, setDateSearchResults] = useState([])
-  const [isDateSearching, setIsDateSearching] = useState(false)
   const [showSearchResults, setShowSearchResults] = useState(false)
   const searchRef = useRef(null)
   const navigate = useNavigate()
@@ -42,42 +37,23 @@ const StockOutflow = () => {
       const newProduct = {
         ...product,
         quantity: quantity,
-        customerName: currentCustomerName,
+        supplierName: currentSupplierName,
         date: currentDate,
         notes: currentNotes,
       }
       setSelectedProducts([...selectedProducts, newProduct])
-      setMessage(`✅ Added ${product.companyName} - ${product.modelNo} to cart`)
+      setMessage(`✅ Added ${product.companyName} - ${product.modelNo} to purchase list`)
     }
     setShowSearchResults(false)
   }
 
   const removeProductFromCart = (productId) => {
     setSelectedProducts(selectedProducts.filter((p) => p._id !== productId))
-    setMessage("🗑️ Product removed from cart")
+    setMessage("🗑️ Product removed from purchase list")
   }
 
   const getTotalItemsInCart = () => {
     return selectedProducts.reduce((total, product) => total + product.quantity, 0)
-  }
-
-  const handleDateSearch = async () => {
-    if (!searchDate) {
-      setMessage("⚠️ Please select a date")
-      return
-    }
-
-    setIsDateSearching(true)
-    try {
-      const res = await API.get(`/products/sales/by-date?date=${searchDate}`)
-      setDateSearchResults(res.data)
-      setMessage(`Found ${res.data.length} sales on ${format(new Date(searchDate), "dd MMM yyyy")}`)
-    } catch (err) {
-      setMessage("❌ Error searching sales by date")
-      setDateSearchResults([])
-    } finally {
-      setIsDateSearching(false)
-    }
   }
 
   useEffect(() => {
@@ -103,6 +79,7 @@ const StockOutflow = () => {
       setAllProducts(res.data)
     } catch (err) {
       console.error("Error fetching all products:", err)
+      setMessage("❌ Error fetching products")
     } finally {
       setIsLoading((prev) => ({ ...prev, allProducts: false }))
     }
@@ -146,77 +123,79 @@ const StockOutflow = () => {
     }
   }
 
-  const handleBatchReduceStock = async () => {
-    if (selectedProducts.length === 0) {
-      setMessage("⚠️ Please add products to cart first.")
-      return
-    }
+// In handleBatchAddStock function, replace the API calls with:
+const handleBatchAddStock = async () => {
+  if (selectedProducts.length === 0) {
+    setMessage("⚠️ Please add products to purchase list first.");
+    return;
+  }
 
-    if (!currentCustomerName.trim()) {
-      setMessage("⚠️ Please enter customer name.")
-      return
-    }
+  if (!currentSupplierName.trim()) {
+    setMessage("⚠️ Please enter supplier name.");
+    return;
+  }
 
-    for (const product of selectedProducts) {
-      if (product.quantity <= 0 || product.quantity > product.quantity) {
-        setMessage(`⚠️ Invalid quantity for ${product.companyName} - ${product.modelNo}`)
-        return
-      }
-    }
-
-    setIsSubmitting(true)
-    setMessage("🔄 Processing batch sale...")
-
-    try {
-      const salePromises = selectedProducts.map((product) =>
-        API.put(`/products/${product._id}/reduce-stock`, {
-          reduceBy: product.quantity,
-          date: currentDate || new Date().toISOString(),
-          partyName: currentCustomerName,
-          notes: currentNotes || "",
-        }),
-      )
-
-      const results = await Promise.all(salePromises)
-
-      setMessage(`✅ Successfully processed ${selectedProducts.length} products for ${currentCustomerName}`)
-
-      setSelectedProducts([])
-      setCurrentCustomerName("")
-      setCurrentDate("")
-      setCurrentNotes("")
-      setSearchQuery("")
-      setProducts([])
-      setShowSearchResults(false)
-
-      fetchAllProducts()
-    } catch (err) {
-      console.error("Batch sale error:", err)
-      const errorMsg = err.response?.data?.message || err.message || "Error processing batch sale"
-      setMessage(`❌ ${errorMsg}`)
-    } finally {
-      setIsSubmitting(false)
+  for (const product of selectedProducts) {
+    if (product.quantity <= 0) {
+      setMessage(`⚠️ Invalid quantity for ${product.companyName} - ${product.modelNo}`);
+      return;
     }
   }
+
+  setIsSubmitting(true);
+  setMessage("🔄 Processing purchase...");
+
+  try {
+    // First update stock for all products
+    const stockPromises = selectedProducts.map((product) =>
+      API.put(`/products/${product._id}/add-stock`, {
+        quantity: product.quantity,
+      })
+    );
+
+    // Then create purchase records
+    const purchasePromises = selectedProducts.map((product) =>
+      API.post("/purchases", {
+        productId: product._id,
+        companyName: product.companyName,
+        modelNo: product.modelNo,
+        quantity: product.quantity,
+        supplierName: currentSupplierName,
+        date: currentDate,
+        notes: currentNotes,
+      })
+    );
+
+    // Execute all promises
+    await Promise.all([...stockPromises, ...purchasePromises]);
+
+    setMessage(`✅ Successfully processed ${selectedProducts.length} products from ${currentSupplierName}`);
+
+    setSelectedProducts([]);
+    setCurrentSupplierName("");
+    setCurrentDate(format(new Date(), "yyyy-MM-dd"));
+    setCurrentNotes("");
+    setSearchQuery("");
+    setProducts([]);
+    setShowSearchResults(false);
+
+    fetchAllProducts();
+  } catch (err) {
+    console.error("Purchase error:", err);
+    const errorMsg = err.response?.data?.message || err.message || "Error processing purchase";
+    setMessage(`❌ ${errorMsg}`);
+  } finally {
+    setIsSubmitting(false);
+  }
+};
 
   const viewProductDetails = (productId) => {
     navigate(`/product-details/${productId}`)
   }
 
-  const navigateToSalesReports = () => {
-    navigate("/sales-reports")
-  }
-
-  // Add this function to handle product click from date search
-  const handleDateSearchProductClick = (productId) => {
-    if (productId) {
-      viewProductDetails(productId);
-    }
-  };
-
   if (isLoading.allProducts) {
     return (
-      <div className="stock-outflow-container">
+      <div className="purchase-management-container">
         <div className="loading-overlay">
           <div className="loading-spinner"></div>
           <p>Loading data...</p>
@@ -226,27 +205,24 @@ const StockOutflow = () => {
   }
 
   return (
-    <div className="stock-outflow-container">
+    <div className="purchase-management-container">
       <div className="page-header">
-        <h2>📦 Sales Management System</h2>
-        <button onClick={navigateToSalesReports} className="reports-btn">
-          📊 View Sales Reports
-        </button>
+        <h2><i className="fas fa-cart-arrow-down"></i> Purchase Management System</h2>
       </div>
 
-      <div className="sales-entry-section">
-        <h3>🛒 Multi-Product Sale Entry</h3>
+      <div className="purchase-entry-section">
+        <h3><i className="fas fa-plus-circle"></i> Add New Purchase</h3>
 
-        <div className="customer-info-section">
-          <h4>👤 Customer Information</h4>
-          <div className="customer-form">
+        <div className="supplier-info-section">
+          <h4><i className="fas fa-truck"></i> Supplier Information</h4>
+          <div className="supplier-form">
             <input
               type="text"
-              placeholder="Customer/Party Name *"
-              value={currentCustomerName}
-              onChange={(e) => setCurrentCustomerName(e.target.value)}
-              className="customer-input"
-              required
+              placeholder="Supplier Name (optional)"
+              value={currentSupplierName}
+              onChange={(e) => setCurrentSupplierName(e.target.value)}
+              className="supplier-input"
+              
             />
             <input
               type="date"
@@ -266,46 +242,47 @@ const StockOutflow = () => {
         </div>
 
         {selectedProducts.length > 0 && (
-          <div className="shopping-cart">
+          <div className="purchase-list">
             <h4>
-              🛒 Shopping Cart ({selectedProducts.length} items, {getTotalItemsInCart()} total qty)
+              <i className="fas fa-clipboard-list"></i> Purchase List ({selectedProducts.length} items, {getTotalItemsInCart()} total qty)
             </h4>
-            <div className="cart-items">
+            <div className="purchase-items">
               {selectedProducts.map((product) => (
-                <div key={product._id} className="cart-item">
-                  <div className="cart-item-info">
+                <div key={product._id} className="purchase-item">
+                  <div className="purchase-item-info">
                     <strong>{product.companyName}</strong> - {product.modelNo}
-                    <span className="cart-item-details">
-                      Qty: {product.quantity} | Stock: {product.quantity} available
+                    <span className="purchase-item-details">
+                      Qty: {product.quantity}
                     </span>
                   </div>
                   <button onClick={() => removeProductFromCart(product._id)} className="remove-btn">
-                    ❌ Remove
+                    <i className="fas fa-times"></i> Remove
                   </button>
                 </div>
               ))}
             </div>
-            <div className="cart-actions">
+            <div className="purchase-actions">
               <button
-                onClick={handleBatchReduceStock}
-                disabled={isSubmitting || !currentCustomerName.trim()}
-                className="process-cart-btn"
+                onClick={handleBatchAddStock}
+                disabled={isSubmitting || !currentSupplierName.trim()}
+                className="process-purchase-btn"
               >
-                {isSubmitting ? "Processing..." : `Process Sale for ${currentCustomerName || "Customer"}`}
+                {isSubmitting ? <i className="fas fa-spinner fa-spin"></i> : <i className="fas fa-check-circle"></i>}
+                {isSubmitting ? "Processing..." : `Complete Purchase from ${currentSupplierName || "Supplier"}`}
               </button>
-              <button onClick={() => setSelectedProducts([])} className="clear-cart-btn">
-                🗑️ Clear Cart
+              <button onClick={() => setSelectedProducts([])} className="clear-purchase-btn">
+                <i className="fas fa-trash"></i> Clear List
               </button>
             </div>
           </div>
         )}
 
         <div className="search-container" ref={searchRef}>
-          <h4>🔍 Search & Add Products</h4>
+          <h4><i className="fas fa-search"></i> Search & Add Products</h4>
           <div className="search-bar-wrapper">
             <input
               type="text"
-              placeholder="Search by company, model, invoice no, size or color..."
+              placeholder="Search by Product, model name"
               value={searchQuery}
               onChange={(e) => {
                 setSearchQuery(e.target.value)
@@ -315,6 +292,7 @@ const StockOutflow = () => {
               className="search-input"
             />
             <button className="search-button" onClick={handleSearch} disabled={isSearching}>
+              {isSearching ? <i className="fas fa-spinner fa-spin"></i> : <i className="fas fa-search"></i>}
               {isSearching ? "Searching..." : "Search"}
             </button>
           </div>
@@ -322,12 +300,12 @@ const StockOutflow = () => {
           {showSearchResults && products.length > 0 && (
             <div className="search-results-dropdown">
               <div className="search-results-header">
-                <span>📋 Found {products.length} products</span>
+                <span><i className="fas fa-list"></i> Found {products.length} products</span>
                 <button 
                   className="close-results-btn"
                   onClick={() => setShowSearchResults(false)}
                 >
-                  ✕
+                  <i className="fas fa-times"></i>
                 </button>
               </div>
               <div className="search-results-list">
@@ -336,12 +314,12 @@ const StockOutflow = () => {
                     p.companyName?.toLowerCase() === searchQuery.toLowerCase() ||
                     p.modelNo?.toLowerCase() === searchQuery.toLowerCase()
 
-                  const isInCart = selectedProducts.some((sp) => sp._id === p._id)
+                  const isInPurchaseList = selectedProducts.some((sp) => sp._id === p._id)
 
                   return (
                     <div
                       key={p._id}
-                      className={`search-result-item ${isInCart ? "in-cart" : ""} ${isExactMatch ? "exact-match" : ""}`}
+                      className={`search-result-item ${isInPurchaseList ? "in-purchase-list" : ""} ${isExactMatch ? "exact-match" : ""}`}
                     >
                       <div className="search-result-info">
                         <div className="search-result-main">
@@ -349,47 +327,49 @@ const StockOutflow = () => {
                           {p.invoiceNo && <span className="invoice-no"> (Invoice: {p.invoiceNo})</span>}
                         </div>
                         <div className="search-result-details">
-                          {p.size && <span>Size: {p.size}</span>}
-                          {p.color && <span>Color: {p.color}</span>}
-                          <span className="product-stock">Stock: {p.quantity} pcs</span>
+                          {p.size && <span><i className="fas fa-ruler"></i> Size: {p.size}</span>}
+                          {p.color && <span><i className="fas fa-palette"></i> Color: {p.color}</span>}
+                          <span className="product-stock"><i className="fas fa-boxes"></i> Current Stock: {p.quantity} pcs</span>
                         </div>
                         {isExactMatch && <span className="exact-match-tag">Exact Match</span>}
-                        {isInCart && <span className="in-cart-tag">In Cart</span>}
+                        {isInPurchaseList && <span className="in-purchase-list-tag">In List</span>}
                       </div>
                       <div className="search-result-actions">
-                        <input
-                          type="number"
-                          min="1"
-                          max={p.quantity}
-                          placeholder="Qty"
-                          className="qty-input"
-                          onKeyPress={(e) => {
-                            if (e.key === "Enter") {
-                              const qty = Number.parseInt(e.target.value)
-                              if (qty > 0 && qty <= p.quantity) {
-                                addProductToCart(p, qty)
-                                e.target.value = ""
+                        <div className="input-with-icon">
+                          <i className="fas fa-cubes"></i>
+                          <input
+                            type="number"
+                            min="1"
+                            placeholder="Qty"
+                            className="qty-input"
+                            onKeyPress={(e) => {
+                              if (e.key === "Enter") {
+                                const qty = Number.parseInt(e.target.value)
+                                if (qty > 0) {
+                                  addProductToCart(p, qty)
+                                  e.target.value = ""
+                                }
                               }
-                            }
-                          }}
-                        />
+                            }}
+                          />
+                        </div>
                         <button
                           onClick={(e) => {
                             const qtyInput = e.target.parentElement.querySelector(".qty-input")
                             const qty = Number.parseInt(qtyInput.value)
-                            if (qty > 0 && qty <= p.quantity) {
+                            if (qty > 0) {
                               addProductToCart(p, qty)
                               qtyInput.value = ""
                             } else {
                               setMessage("⚠️ Please enter valid quantity")
                             }
                           }}
-                          className="add-to-cart-btn"
+                          className="add-to-purchase-btn"
                         >
-                          {isInCart ? "Update" : "Add to Cart"}
+                          <i className="fas fa-cart-plus"></i> {isInPurchaseList ? "Update" : "Add"}
                         </button>
                         <button onClick={() => viewProductDetails(p._id)} className="view-details-btn">
-                          👁️
+                          <i className="fas fa-eye"></i>
                         </button>
                       </div>
                     </div>
@@ -402,7 +382,13 @@ const StockOutflow = () => {
           {showSearchResults && searchQuery && products.length === 0 && !isSearching && (
             <div className="search-results-dropdown">
               <div className="no-search-results">
-                <p>No products found for "{searchQuery}"</p>
+                <p><i className="fas fa-search"></i> No products found for "{searchQuery}"</p>
+                <button 
+                  className="create-new-product-btn"
+                  onClick={() => navigate("/add-product")}
+                >
+                  <i className="fas fa-plus"></i> Create New Product
+                </button>
               </div>
             </div>
           )}
@@ -412,53 +398,15 @@ const StockOutflow = () => {
           <p
             className={`message ${message.startsWith("❌") ? "error" : message.startsWith("⚠️") ? "warning" : "success"}`}
           >
+            {message.startsWith("❌") && <i className="fas fa-exclamation-circle"></i>}
+            {message.startsWith("⚠️") && <i className="fas fa-exclamation-triangle"></i>}
+            {message.startsWith("✅") && <i className="fas fa-check-circle"></i>}
             {message}
           </p>
-        )}
-      </div>
-
-      <div className="date-search-section">
-        <h3>🔍 Search Sales by Date</h3>
-        <div className="date-search-controls">
-          <input
-            type="date"
-            value={searchDate}
-            onChange={(e) => setSearchDate(e.target.value)}
-            className="date-search-input"
-          />
-          <button onClick={handleDateSearch} disabled={isDateSearching} className="date-search-button">
-            {isDateSearching ? "Searching..." : "Search"}
-          </button>
-        </div>
-
-        {dateSearchResults.length > 0 && (
-          <div className="date-search-results">
-            <h4>Sales on {format(new Date(searchDate), "dd MMM yyyy")}</h4>
-            <div className="sales-table">
-              <div className="table-header">
-                <span>Product</span>
-                <span>Model</span>
-                <span>Qty Sold</span>
-                <span>Party</span>
-              </div>
-              {dateSearchResults.map((sale) => (
-                <div 
-                  key={sale._id} 
-                  className="table-row clickable-row"
-                  onClick={() => handleDateSearchProductClick(sale.productId || sale._id)}
-                >
-                  <span>{sale.companyName}</span>
-                  <span>{sale.modelNo}</span>
-                  <span className="sold-qty">-{sale.quantity}</span>
-                  <span>{sale.partyName || "N/A"}</span>
-                </div>
-              ))}
-            </div>
-          </div>
         )}
       </div>
     </div>
   )
 }
 
-export default StockOutflow
+export default PurchaseManagement

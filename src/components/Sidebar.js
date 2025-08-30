@@ -61,10 +61,24 @@ const Sidebar = () => {
           <i className="fas fa-user-plus"></i> Create User
         </NavLink>
    
-<NavLink to="/reduce-stock" className="nav-link" activeClassName="active">
-  <i className="fas fa-minus-circle"></i> Reduce Stock
-</NavLink>
-
+        <NavLink to="/reduce-stock" className="nav-link" activeClassName="active">
+          <i className="fas fa-cart-arrow-down"></i> Sales
+        </NavLink>
+        <NavLink to="/sales-reports" className="nav-link" activeClassName="active">
+          <i className="fas fa-chart-bar"></i> Sales Report
+        </NavLink>
+        <NavLink to="/purchase" className="nav-link" activeClassName="active">
+          <i className="fas fa-cart-plus"></i> Purchase
+        </NavLink>
+        <NavLink to="/purchase-report" className="nav-link" activeClassName="active">
+          <i className="fas fa-file-invoice-dollar"></i> Purchase Report
+        </NavLink>
+        <NavLink to="/return" className="nav-link" activeClassName="active">
+          <i className="fas fa-undo"></i> Sales Return
+        </NavLink>
+        <NavLink to="/return-report" className="nav-link" activeClassName="active">
+          <i className="fas fa-file-excel"></i> Return Report
+        </NavLink>
       </nav>
       {showScrollIndicator && (
         <div className="scroll-indicator">

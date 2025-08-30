@@ -9,9 +9,6 @@ const AddProduct = () => {
     invoiceNo: '',
     invoiceDate: '',
     size: '',
-    color: '',
-    design: '',
-    type: '',
     quantity: '',
     alertQty: '',
   });
@@ -28,8 +25,12 @@ const AddProduct = () => {
   };
 
   const handleSubmit = async () => {
+    // Validation
     if (!data.invoiceDate) return alert("Please select invoice date");
     if (!data.modelNo.trim()) return alert("Model Number is required");
+    if (!data.quantity || data.quantity <= 0) return alert("Please enter a valid quantity");
+    if (!data.alertQty || data.alertQty <= 0) return alert("Please enter a valid alert quantity");
+    
     setLoading(true);
 
     try {
@@ -55,20 +56,16 @@ const AddProduct = () => {
 
       // Prepare payload
       const payload = {
-  companyName: data.companyName,
-  modelNo: data.modelNo || '', // optional
-  invoiceNo: data.invoiceNo || '', // optional
-  invoiceDate: data.invoiceDate,
-  size: data.size,
-  color: data.color,
-  design: data.design,
-  type: data.type,
-  quantity: Number(data.quantity),
-  alertQty: Number(data.alertQty),
-};
+        companyName: data.companyName,
+        modelNo: data.modelNo || '',
+        invoiceNo: data.invoiceNo || '',
+        invoiceDate: data.invoiceDate,
+        size: data.size,
+        quantity: Number(data.quantity),
+        alertQty: Number(data.alertQty),
+      };
 
-if (imageData) payload.image = imageData;
-
+      if (imageData) payload.image = imageData;
 
       // Send to backend
       await API.post("/products", payload, {
@@ -79,7 +76,18 @@ if (imageData) payload.image = imageData;
       });
 
       alert("Product added successfully!");
-      // Reset form if needed
+      
+      // Reset form
+      setData({
+        companyName: '',
+        modelNo: '',
+        invoiceNo: '',
+        invoiceDate: '',
+        size: '',
+        quantity: '',
+        alertQty: '',
+      });
+      setImage(null);
 
     } catch (error) {
       console.error("Error:", error);
@@ -93,25 +101,28 @@ if (imageData) payload.image = imageData;
     <div className="add-product-container">
       <h2 className="add-product-title">Add Product</h2>
       <div className="form-grid">
-        <input className="form-input" name="companyName" placeholder="Company Name" value={data.companyName} onChange={handleChange} />
+        <input 
+          className="form-input" 
+          name="companyName" 
+          placeholder="Company Name" 
+          value={data.companyName} 
+          onChange={handleChange} 
+        />
         <input
-  className="form-input"
-  name="modelNo"
-  placeholder="Model Number"
-  value={data.modelNo}
-  onChange={handleChange}
-  required
-/>
-
-
-<input
-  className="form-input"
-  name="invoiceNo"
-  placeholder="Invoice Number"
-  value={data.invoiceNo}
-  onChange={handleChange}
-/>
-
+          className="form-input"
+          name="modelNo"
+          placeholder="Model Number"
+          value={data.modelNo}
+          onChange={handleChange}
+          required
+        />
+        <input
+          className="form-input"
+          name="invoiceNo"
+          placeholder="Invoice Number"
+          value={data.invoiceNo}
+          onChange={handleChange}
+        />
         <input 
           className="form-input" 
           type="date" 
@@ -120,14 +131,41 @@ if (imageData) payload.image = imageData;
           value={data.invoiceDate} 
           onChange={handleChange} 
         />
-        <input className="form-input" name="size" placeholder="Size" value={data.size} onChange={handleChange} />
-        <input className="form-input" name="color" placeholder="Color" value={data.color} onChange={handleChange} />
-        <input className="form-input" name="design" placeholder="Design" value={data.design} onChange={handleChange} />
-        <input className="form-input" name="type" placeholder="Type" value={data.type} onChange={handleChange} />
-        <input className="form-input" name="quantity" type="number" placeholder="Total Quantity in Stock" value={data.quantity} onChange={handleChange} />
-        <input className="form-input" name="alertQty" type="number" placeholder="Minimum Quantity Before Alert" value={data.alertQty} onChange={handleChange} />
-        <input type="file" className="file-input" onChange={(e) => setImage(e.target.files[0])} />
-        <button className="submit-btn" onClick={handleSubmit} disabled={loading}>
+        <input 
+          className="form-input" 
+          name="size" 
+          placeholder="Size" 
+          value={data.size} 
+          onChange={handleChange} 
+        />
+        <input 
+          className="form-input" 
+          name="quantity" 
+          type="number" 
+          placeholder="Total Quantity in Stock" 
+          value={data.quantity} 
+          onChange={handleChange} 
+          min="1"
+        />
+        <input 
+          className="form-input" 
+          name="alertQty" 
+          type="number" 
+          placeholder="Minimum Quantity Before Alert" 
+          value={data.alertQty} 
+          onChange={handleChange} 
+          min="1"
+        />
+        <input 
+          type="file" 
+          className="file-input" 
+          onChange={(e) => setImage(e.target.files[0])} 
+        />
+        <button 
+          className="submit-btn" 
+          onClick={handleSubmit} 
+          disabled={loading}
+        >
           {loading ? 'Uploading...' : 'Add Product'}
         </button>
       </div>
