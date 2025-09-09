@@ -131,7 +131,7 @@ const handleBatchAddStock = async () => {
   }
 
   if (!currentSupplierName.trim()) {
-    setMessage("⚠️ Please enter supplier name.");
+    setMessage("⚠️ Please enter customer name.");
     return;
   }
 
@@ -169,7 +169,7 @@ const handleBatchAddStock = async () => {
     // Execute all promises
     await Promise.all([...stockPromises, ...purchasePromises]);
 
-    setMessage(`✅ Successfully processed ${selectedProducts.length} products from ${currentSupplierName}`);
+    setMessage(`✅ Successfully processed ${selectedProducts.length} products for ${currentSupplierName}`);
 
     setSelectedProducts([]);
     setCurrentSupplierName("");
@@ -214,11 +214,11 @@ const handleBatchAddStock = async () => {
         <h3><i className="fas fa-plus-circle"></i> Add New Purchase</h3>
 
         <div className="supplier-info-section">
-          <h4><i className="fas fa-truck"></i> Supplier Information</h4>
+          <h4><i className="fas fa-user"></i> Customer Information</h4>
           <div className="supplier-form">
             <input
               type="text"
-              placeholder="Supplier Name (optional)"
+              placeholder="Customer Name (optional)"
               value={currentSupplierName}
               onChange={(e) => setCurrentSupplierName(e.target.value)}
               className="supplier-input"
@@ -268,7 +268,7 @@ const handleBatchAddStock = async () => {
                 className="process-purchase-btn"
               >
                 {isSubmitting ? <i className="fas fa-spinner fa-spin"></i> : <i className="fas fa-check-circle"></i>}
-                {isSubmitting ? "Processing..." : `Complete Purchase from ${currentSupplierName || "Supplier"}`}
+                {isSubmitting ? "Processing..." : `Complete Purchase for ${currentSupplierName || "Customer"}`}
               </button>
               <button onClick={() => setSelectedProducts([])} className="clear-purchase-btn">
                 <i className="fas fa-trash"></i> Clear List
