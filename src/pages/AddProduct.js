@@ -9,7 +9,7 @@ const AddProduct = () => {
     invoiceNo: '',
     invoiceDate: '',
     size: '',
-    quantity: '',
+    quantity: 0,
     alertQty: '',
   });
 
@@ -28,7 +28,9 @@ const AddProduct = () => {
     // Validation
     if (!data.invoiceDate) return alert("Please select invoice date");
     if (!data.modelNo.trim()) return alert("Model Number is required");
-    if (!data.quantity || data.quantity <= 0) return alert("Please enter a valid quantity");
+    const quantityNum = data.quantity === '' ? 0 : Number(data.quantity);
+    if (Number.isNaN(quantityNum)) return alert("Please enter a valid quantity");
+    if (quantityNum < 0) return alert("Quantity cannot be negative");
     if (!data.alertQty || data.alertQty <= 0) return alert("Please enter a valid alert quantity");
     
     setLoading(true);
@@ -61,7 +63,7 @@ const AddProduct = () => {
         invoiceNo: data.invoiceNo || '',
         invoiceDate: data.invoiceDate,
         size: data.size,
-        quantity: Number(data.quantity),
+        quantity: quantityNum,
         alertQty: Number(data.alertQty),
       };
 
@@ -84,7 +86,7 @@ const AddProduct = () => {
         invoiceNo: '',
         invoiceDate: '',
         size: '',
-        quantity: '',
+        quantity: 0,
         alertQty: '',
       });
       setImage(null);
@@ -145,7 +147,7 @@ const AddProduct = () => {
           placeholder="Total Quantity in Stock" 
           value={data.quantity} 
           onChange={handleChange} 
-          min="1"
+          min="0"
         />
         <input 
           className="form-input" 

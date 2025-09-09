@@ -15,6 +15,26 @@
   gap: 10px;
 }
 
+.tabs {
+  display: flex;
+  gap: 8px;
+  margin-left: auto;
+}
+
+.tab-btn {
+  background: #f3e5f5;
+  color: #4a148c;
+  border: 1px solid #e1bee7;
+  padding: 6px 10px;
+  border-radius: 14px;
+  cursor: pointer;
+}
+
+.tab-btn.active {
+  background: #4a148c;
+  color: #fff;
+}
+
 .report-controls {
   margin-bottom: 15px;
 }
@@ -70,4 +90,16 @@
 .report-message {
   margin-top: 10px;
   color: red;
+}
+
+.clickable-row {
+  cursor: pointer;
+}
+
+.back-btn {
+  background: transparent;
+  border: none;
+  color: #4a148c;
+  cursor: pointer;
+  margin: 10px 0;
 }

@@ -1,10 +1,10 @@
 // Frontend: SalesReports.jsx
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useMemo } from "react"
 import API from "../utils/api"
 import "./SalesReport.css"
-import { format } from "date-fns"
+import { format, startOfDay, endOfDay, startOfMonth, endOfMonth } from "date-fns"
 import { jsPDF } from "jspdf"
 import autoTable from "jspdf-autotable"
 import { useNavigate } from "react-router-dom"
@@ -24,6 +24,8 @@ const SalesReports = () => {
   const [currentView, setCurrentView] = useState("main")
   const [selectedSale, setSelectedSale] = useState(null)
   const [customerDetails, setCustomerDetails] = useState(null)
+  const [sales, setSales] = useState([])
+  const [summaryLoading, setSummaryLoading] = useState(false)
   const navigate = useNavigate()
 
   useEffect(() => {
@@ -31,7 +33,21 @@ const SalesReports = () => {
     fetchWeeklySales()
     fetchDailySalesReport()
     fetchRecentOutflows()
+    fetchSummarySales()
   }, [])
+
+  useEffect(() => {
+    const now = new Date()
+    const params = {}
+    if (activeTab === "today") {
+      params.startDate = startOfDay(now).toISOString()
+      params.endDate = endOfDay(now).toISOString()
+    } else if (activeTab === "monthly") {
+      params.startDate = startOfMonth(now).toISOString()
+      params.endDate = endOfMonth(now).toISOString()
+    }
+    fetchSummarySales(params)
+  }, [activeTab])
 
   const fetchTodaySales = async () => {
     setIsLoading((prev) => ({ ...prev, today: true }))
@@ -155,6 +171,21 @@ const SalesReports = () => {
     }
   }
 
+  const fetchSummarySales = async (params = {}) => {
+    setSummaryLoading(true)
+    try {
+      const query = new URLSearchParams({ page: 1, limit: 1000, ...params }).toString()
+      const res = await API.get(`/products/sales?${query}`)
+      const data = Array.isArray(res.data?.sales) ? res.data.sales : Array.isArray(res.data) ? res.data : []
+      setSales(data)
+    } catch (err) {
+      console.error("Error fetching sales summary:", err)
+      setSales([])
+    } finally {
+      setSummaryLoading(false)
+    }
+  }
+
   const fetchCustomerDetails = async (customerName) => {
     try {
       const res = await API.get(`/products/sales/customer/${encodeURIComponent(customerName)}`)
@@ -192,7 +223,7 @@ const SalesReports = () => {
           if (key === "date") return format(new Date(item.date), "yyyy-MM-dd")
           if (key === "product") return item.companyName
           if (key === "model") return item.modelNo
-          if (key === "quantitysold") return item.totalSold
+          if (key === "quantitysold") return item.totalSold || item.quantity || item.totalQty
           if (key === "totalsales") return item.totalSales
           if (key === "itemssold") return item.itemsSold
           if (key === "customer") return item.partyName
@@ -231,26 +262,15 @@ const SalesReports = () => {
     }
   }
 
-  const downloadTodaySalesPDF = () => {
-    generatePDF(todaySales, "Today's", ["Customer", "Product", "Model", "Quantity Sold"])
-  }
-
-  const downloadWeeklySalesPDF = () => {
-    generatePDF(weeklySales, "Weekly", ["Date", "Customer", "Product", "Model", "Quantity Sold"])
-  }
-
-  const downloadDailyReportPDF = () => {
-    generatePDF(dailySalesReport, "Daily", ["Date", "Total Sales", "Items Sold"])
-  }
-
-  const handleSaleRowClick = (sale, saleType) => {
-    const saleDetails = {
-      ...sale,
-      saleType: saleType,
-      clickedAt: new Date().toISOString(),
-    }
-    setSelectedSale(saleDetails)
-    setCurrentView("saleDetails")
+  const downloadSummaryPDF = () => {
+    const rows = summaryRows.map(row => ({
+      date: row.latestDate ? format(new Date(row.latestDate), "yyyy-MM-dd") : "N/A",
+      partyName: row.customerName,
+      companyName: "",
+      modelNo: "",
+      totalQty: row.totalQty,
+    }))
+    generatePDF(rows, `${activeTab === 'today' ? "Today's" : activeTab === 'monthly' ? 'Monthly' : 'All'}`, ["Date", "Customer", "Product", "Model", "Quantity Sold"])
   }
 
   const handleCustomerClick = (customerName) => {
@@ -472,7 +492,25 @@ const SalesReports = () => {
     )
   }
 
-  if (isLoading.today || isLoading.weekly || isLoading.daily || isLoading.outflows) {
+  const summaryRows = useMemo(() => {
+    const groups = new Map()
+    for (const s of sales) {
+      const key = s.partyName || "N/A"
+      const current = groups.get(key) || { customerName: key, totalQty: 0, latestDate: null, notes: "" }
+      const qty = Number(s.quantity || s.totalSold) || 0
+      current.totalQty += qty
+      const d = s.date || s.createdAt
+      if (d) {
+        const dt = new Date(d)
+        if (!current.latestDate || dt > current.latestDate) current.latestDate = dt
+      }
+      if (s.notes && !current.notes) current.notes = s.notes
+      groups.set(key, current)
+    }
+    return Array.from(groups.values()).sort((a, b) => (b.latestDate?.getTime() || 0) - (a.latestDate?.getTime() || 0))
+  }, [sales])
+
+  if (isLoading.today || isLoading.weekly || isLoading.daily || isLoading.outflows || summaryLoading) {
     return (
       <div className="sales-reports-container">
         <div className="loading-overlay">
@@ -503,183 +541,46 @@ const SalesReports = () => {
       <div className="sales-reports-section">
         <div className="tabs">
           <button className={`tab-btn ${activeTab === "today" ? "active" : ""}`} onClick={() => setActiveTab("today")}>
-            Today's Sales
+            Today
           </button>
-          <button
-            className={`tab-btn ${activeTab === "weekly" ? "active" : ""}`}
-            onClick={() => setActiveTab("weekly")}
-          >
-            Weekly Sales
-          </button>
-          <button className={`tab-btn ${activeTab === "daily" ? "active" : ""}`} onClick={() => setActiveTab("daily")}>
-            Daily Report
-          </button>
-          <button className={`tab-btn ${activeTab === "recent" ? "active" : ""}`} onClick={() => setActiveTab("recent")}>
-            Recent Outflows
-          </button>
+          <button className={`tab-btn ${activeTab === "monthly" ? "active" : ""}`} onClick={() => setActiveTab("monthly")}>Monthly</button>
+          <button className={`tab-btn ${activeTab === "all" ? "active" : ""}`} onClick={() => setActiveTab("all")}>All</button>
         </div>
 
         <div className="report-actions">
-          {activeTab !== "recent" && (
-            <button
-              onClick={
-                activeTab === "today"
-                  ? downloadTodaySalesPDF
-                  : activeTab === "weekly"
-                    ? downloadWeeklySalesPDF
-                    : downloadDailyReportPDF
-              }
-              className="download-btn"
-              disabled={
-                (activeTab === "today" && todaySales.length === 0) ||
-                (activeTab === "weekly" && weeklySales.length === 0) ||
-                (activeTab === "daily" && dailySalesReport.length === 0)
-              }
-            >
-              Download {activeTab === "today" ? "Today's" : activeTab === "weekly" ? "Weekly" : "Daily"} Report (PDF)
-            </button>
-          )}
+          <button onClick={downloadSummaryPDF} className="download-btn" disabled={summaryRows.length === 0}>
+            Download {activeTab === 'today' ? "Today's" : activeTab === 'monthly' ? 'Monthly' : 'All'} Report (PDF)
+          </button>
         </div>
 
-        {activeTab === "today" ? (
-          <div className="today-sales">
-            <h3>📅 Today's Sales</h3>
-            {todaySales.length > 0 ? (
-              <div className="sales-table">
-                <div className="table-header">
-                  <span>Customer</span>
-                  <span>Product</span>
-                  <span>Model</span>
-                  <span>Quantity Sold</span>
-                </div>
-                {todaySales.map((sale) => (
-                  <div
-                    key={sale._id}
-                    className="table-row clickable-row"
-                    onClick={() => handleSaleRowClick(sale, "today")}
-                  >
-                    <span className="clickable-customer" onClick={(e) => {
-                      e.stopPropagation();
-                      handleCustomerClick(sale.partyName);
-                    }}>{sale.partyName}</span>
-                    <span className="clickable-product">
-                      {sale.companyName}
-                      {sale.productDetails?.size && ` (Size: ${sale.productDetails.size})`}
-                    </span>
-                    <span>{sale.modelNo}</span>
-                    <span className="sold-qty">{sale.totalSold} pcs</span>
-                  </div>
-                ))}
-                <div className="table-footer">
-                  <span>Total:</span>
-                  <span></span>
-                  <span></span>
-                  <span className="total-qty">
-                    {todaySales.reduce((sum, item) => sum + (item.totalSold || 0), 0)} pcs
-                  </span>
-                </div>
-              </div>
-            ) : (
-              <p className="no-data">No sales recorded today.</p>
-            )}
+        <div className="sales-table">
+          <div className="table-header">
+            <span>Date</span>
+            <span>Customer</span>
+            <span>Notes</span>
+            <span>Total Quantity</span>
           </div>
-        ) : activeTab === "weekly" ? (
-          <div className="weekly-sales">
-            <h3>📆 Weekly Sales</h3>
-            {weeklySales.length > 0 ? (
-              <div className="sales-table">
-                <div className="table-header">
-                  <span>Date</span>
-                  <span>Customer</span>
-                  <span>Product</span>
-                  <span>Quantity Sold</span>
-                </div>
-                {weeklySales.map((sale) => (
-                  <div
-                    key={sale._id}
-                    className="table-row clickable-row"
-                    onClick={() => handleSaleRowClick(sale, "weekly")}
-                  >
-                    <span>{format(new Date(sale.date), "MMM dd")}</span>
-                    <span className="clickable-customer" onClick={(e) => {
-                      e.stopPropagation();
-                      handleCustomerClick(sale.partyName);
-                    }}>{sale.partyName}</span>
-                    <span>{sale.companyName}</span>
-                    <span className="sold-qty">{sale.totalSold} pcs</span>
-                  </div>
-                ))}
-                <div className="table-footer">
-                  <span>Total:</span>
-                  <span></span>
-                  <span></span>
-                  <span className="total-qty">
-                    {weeklySales.reduce((sum, item) => sum + (item.totalSold || 0), 0)} pcs
-                  </span>
-                </div>
+          {summaryRows.length === 0 ? (
+            <p className="no-data">No sales records found.</p>
+          ) : (
+            summaryRows.map((row, idx) => (
+              <div key={idx} className="table-row clickable-row" onClick={() => handleCustomerClick(row.customerName)}>
+                <span>{row.latestDate ? format(new Date(row.latestDate), "yyyy-MM-dd") : "N/A"}</span>
+                <span className="clickable-customer">{row.customerName}</span>
+                <span className="notes-cell">{row.notes || "-"}</span>
+                <span className="sold-qty">{row.totalQty} pcs</span>
               </div>
-            ) : (
-              <p className="no-data">No sales recorded this week.</p>
-            )}
-          </div>
-        ) : activeTab === "daily" ? (
-          <div className="daily-report">
-            <h3>📊 Daily Sales Report</h3>
-            {dailySalesReport.length > 0 ? (
-              <div className="sales-table">
-                <div className="table-header">
-                  <span>Date</span>
-                  <span>Total Sales</span>
-                  <span>Items Sold</span>
-                </div>
-                {dailySalesReport.map((report) => (
-                  <div key={report._id} className="table-row">
-                    <span>{format(new Date(report.date), "MMM dd, yyyy")}</span>
-                    <span>{report.totalSales} transactions</span>
-                    <span className="sold-qty">{report.itemsSold} pcs</span>
-                  </div>
-                ))}
-                <div className="table-footer">
-                  <span>Total:</span>
-                  <span>{dailySalesReport.reduce((sum, item) => sum + (item.totalSales || 0), 0)} transactions</span>
-                  <span className="total-qty">
-                    {dailySalesReport.reduce((sum, item) => sum + (item.itemsSold || 0), 0)} pcs
-                  </span>
-                </div>
-              </div>
-            ) : (
-              <p className="no-data">No daily sales data available.</p>
-            )}
-          </div>
-        ) : (
-          <div className="recent-outflows-section">
-            <h3>🔄 Recent Stock Reductions</h3>
-            {recentOutflows.length > 0 ? (
-              <div className="outflows-table">
-                <div className="table-header">
-                  <span>Customer</span>
-                  <span>Product</span>
-                  <span>Model</span>
-                  <span>Qty Reduced</span>
-                  <span>Time</span>
-                </div>
-                {recentOutflows.map((outflow) => (
-                  <div key={outflow._id} className="table-row">
-                    <span className="clickable-customer" onClick={() => handleCustomerClick(outflow.partyName)}>
-                      {outflow.partyName}
-                    </span>
-                    <span>{outflow.companyName}</span>
-                    <span>{outflow.modelNo}</span>
-                    <span className="reduced-qty">-{outflow.quantity} pcs</span>
-                    <span>{format(new Date(outflow.createdAt), "HH:mm")}</span>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <p className="no-data">No recent stock reductions.</p>
-            )}
-          </div>
-        )}
+            ))
+          )}
+          {summaryRows.length > 0 && (
+            <div className="table-footer">
+              <span>Total:</span>
+              <span></span>
+              <span></span>
+              <span className="total-qty">{summaryRows.reduce((s, r) => s + (r.totalQty || 0), 0)} pcs</span>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   )

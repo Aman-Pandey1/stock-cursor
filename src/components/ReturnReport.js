@@ -1,31 +1,41 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import API from "../utils/api";
 import "./ReturnReport.css";
-import { format } from "date-fns";
+import { format, startOfDay, endOfDay, startOfMonth, endOfMonth } from "date-fns";
 import { jsPDF } from "jspdf";
 import autoTable from "jspdf-autotable";
 
 const ReturnReport = () => {
   const [returns, setReturns] = useState([]);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [limit, setLimit] = useState(10);
-  const [totalPages, setTotalPages] = useState(1);
+  const [activeTab, setActiveTab] = useState("today"); // today | monthly | all
+  const [selectedCustomer, setSelectedCustomer] = useState(null);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
   const [generatingPDF, setGeneratingPDF] = useState(false);
 
   useEffect(() => {
     fetchReturns();
-  }, [currentPage, limit]);
+  }, [activeTab]);
 
   const fetchReturns = async () => {
     setLoading(true);
     try {
-      const res = await API.get(`/returns?page=${currentPage}&limit=${limit}`);
-      setReturns(res.data.returns);
-      setTotalPages(res.data.totalPages);
+      const now = new Date();
+      const params = { page: 1, limit: 1000 };
+      if (activeTab === "today") {
+        params.startDate = startOfDay(now).toISOString();
+        params.endDate = endOfDay(now).toISOString();
+      } else if (activeTab === "monthly") {
+        params.startDate = startOfMonth(now).toISOString();
+        params.endDate = endOfMonth(now).toISOString();
+      }
+      const query = new URLSearchParams(params).toString();
+      const res = await API.get(`/returns?${query}`);
+      const list = res.data?.returns || res.data || [];
+      setReturns(Array.isArray(list) ? list : []);
+      setSelectedCustomer(null);
     } catch (err) {
       console.error("Error fetching returns:", err);
       setMessage("❌ Failed to fetch return report");
@@ -33,6 +43,39 @@ const ReturnReport = () => {
       setLoading(false);
     }
   };
+
+  const summaryRows = useMemo(() => {
+    if (!Array.isArray(returns)) return [];
+    const groups = new Map();
+    for (const r of returns) {
+      const key = r.customerName || "N/A";
+      const current = groups.get(key) || { customerName: key, totalQty: 0, latestDate: null, notes: "" };
+      const qty = Number(r.quantity) || 0;
+      current.totalQty += qty;
+      const d = r.date || r.createdAt;
+      if (d) {
+        const dt = new Date(d);
+        if (!current.latestDate || dt > current.latestDate) current.latestDate = dt;
+      }
+      if (r.notes && !current.notes) current.notes = r.notes;
+      groups.set(key, current);
+    }
+    return Array.from(groups.values()).sort((a, b) => (b.latestDate?.getTime() || 0) - (a.latestDate?.getTime() || 0));
+  }, [returns]);
+
+  const detailRows = useMemo(() => {
+    if (!selectedCustomer) return [];
+    const byProduct = new Map();
+    for (const r of returns) {
+      if ((r.customerName || "N/A") !== selectedCustomer) continue;
+      const key = `${r.companyName || "Unknown"} | ${r.modelNo || "N/A"}`;
+      const qty = Number(r.quantity) || 0;
+      const cur = byProduct.get(key) || { product: key, totalQty: 0 };
+      cur.totalQty += qty;
+      byProduct.set(key, cur);
+    }
+    return Array.from(byProduct.values());
+  }, [selectedCustomer, returns]);
 
   const downloadPDF = () => {
     setGeneratingPDF(true);
@@ -46,23 +89,21 @@ const ReturnReport = () => {
 
       doc.setFont("helvetica", "bold");
       doc.setFontSize(16);
-      doc.text("Return Report", 105, 15, { align: "center" });
+      doc.text("Return Report (Summary)", 105, 15, { align: "center" });
 
       doc.setFont("helvetica", "normal");
       doc.setFontSize(10);
       doc.text(`Generated on: ${format(new Date(), "yyyy-MM-dd HH:mm")}`, 105, 22, { align: "center" });
 
-      const tableData = returns.map((item) => [
-        item.date ? format(new Date(item.date), "yyyy-MM-dd") : "N/A",
-        item.customerName || "N/A",
-        item.companyName,
-        item.modelNo,
-        item.quantity.toString(),
-        item.notes || "-"
+      const tableData = summaryRows.map((row) => [
+        row.latestDate ? format(new Date(row.latestDate), "yyyy-MM-dd") : "N/A",
+        row.customerName,
+        row.notes || "-",
+        row.totalQty.toString(),
       ]);
 
       autoTable(doc, {
-        head: [['Date', 'Customer', 'Product', 'Model No', 'Quantity', 'Reason']],
+        head: [['Date', 'Customer Name', 'Notes', 'Total Quantity']],
         body: tableData,
         startY: 25,
         margin: { top: 25 },
@@ -78,12 +119,10 @@ const ReturnReport = () => {
           halign: "center",
         },
         columnStyles: {
-          0: { cellWidth: 25 },
-          1: { cellWidth: 30 },
-          2: { cellWidth: 35 },
-          3: { cellWidth: 35 },
-          4: { cellWidth: 20 },
-          5: { cellWidth: "auto" }
+          0: { cellWidth: 30 },
+          1: { cellWidth: 60 },
+          2: { cellWidth: 60 },
+          3: { cellWidth: 30 },
         }
       });
 
@@ -103,9 +142,14 @@ const ReturnReport = () => {
         <h2>
           <i className="fas fa-undo-alt"></i> Return Report
         </h2>
+        <div className="tabs">
+          <button className={`tab-btn ${activeTab === 'today' ? 'active' : ''}`} onClick={() => setActiveTab('today')}>Today</button>
+          <button className={`tab-btn ${activeTab === 'monthly' ? 'active' : ''}`} onClick={() => setActiveTab('monthly')}>Monthly</button>
+          <button className={`tab-btn ${activeTab === 'all' ? 'active' : ''}`} onClick={() => setActiveTab('all')}>All</button>
+        </div>
         <button 
           onClick={downloadPDF} 
-          disabled={generatingPDF || returns.length === 0}
+          disabled={generatingPDF || summaryRows.length === 0}
           className="download-pdf-btn"
         >
           {generatingPDF ? (
@@ -116,64 +160,57 @@ const ReturnReport = () => {
         </button>
       </div>
 
-      <div className="report-controls">
-        <label>Show: </label>
-        <select value={limit} onChange={(e) => setLimit(Number(e.target.value))}>
-          <option value={10}>10 per page</option>
-          <option value={20}>20 per page</option>
-          <option value={50}>50 per page</option>
-        </select>
-      </div>
-
       {loading ? (
         <p>Loading report...</p>
-      ) : returns.length === 0 ? (
+      ) : summaryRows.length === 0 ? (
         <p>No return records found.</p>
+      ) : selectedCustomer ? (
+        <div className="detail-view">
+          <button className="back-btn" onClick={() => setSelectedCustomer(null)}>← Back</button>
+          <h3>Details for {selectedCustomer}</h3>
+          {detailRows.length === 0 ? (
+            <p>No details available.</p>
+          ) : (
+            <table className="report-table">
+              <thead>
+                <tr>
+                  <th>Product</th>
+                  <th>Quantity</th>
+                </tr>
+              </thead>
+              <tbody>
+                {detailRows.map((row, idx) => (
+                  <tr key={idx}>
+                    <td>{row.product}</td>
+                    <td>{row.totalQty}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+        </div>
       ) : (
         <table className="report-table">
           <thead>
             <tr>
               <th>Date</th>
-              <th>Customer</th>
-              <th>Product</th>
-              <th>Model No</th>
-              <th>Quantity</th>
-              <th>Reason</th>
+              <th>Customer Name</th>
+              <th>Notes</th>
+              <th>Total Quantity</th>
             </tr>
           </thead>
           <tbody>
-            {returns.map((returnItem, index) => (
-              <tr key={index}>
-                <td>{returnItem.date ? format(new Date(returnItem.date), "yyyy-MM-dd") : "N/A"}</td>
-                <td>{returnItem.customerName || "N/A"}</td>
-                <td>{returnItem.companyName}</td>
-                <td>{returnItem.modelNo}</td>
-                <td>{returnItem.quantity}</td>
-                <td>{returnItem.notes || "-"}</td>
+            {summaryRows.map((row, index) => (
+              <tr key={index} className="clickable-row" onClick={() => setSelectedCustomer(row.customerName)}>
+                <td>{row.latestDate ? format(new Date(row.latestDate), "yyyy-MM-dd") : "N/A"}</td>
+                <td>{row.customerName}</td>
+                <td>{row.notes || "-"}</td>
+                <td>{row.totalQty}</td>
               </tr>
             ))}
           </tbody>
         </table>
       )}
-
-      {/* Pagination */}
-      <div className="pagination">
-        <button
-          disabled={currentPage === 1}
-          onClick={() => setCurrentPage((prev) => prev - 1)}
-        >
-          ⬅ Prev
-        </button>
-        <span>
-          Page {currentPage} of {totalPages}
-        </span>
-        <button
-          disabled={currentPage === totalPages}
-          onClick={() => setCurrentPage((prev) => prev + 1)}
-        >
-          Next ➡
-        </button>
-      </div>
 
       {message && <p className="report-message">{message}</p>}
     </div>

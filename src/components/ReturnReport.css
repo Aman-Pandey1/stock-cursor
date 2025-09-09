@@ -19,6 +19,27 @@
   margin: 0;
 }
 
+.tabs {
+  display: flex;
+  gap: 8px;
+  margin-left: auto;
+  margin-right: 10px;
+}
+
+.tab-btn {
+  background: #f3e5f5;
+  color: #6a1b9a;
+  border: 1px solid #e1bee7;
+  padding: 6px 10px;
+  border-radius: 14px;
+  cursor: pointer;
+}
+
+.tab-btn.active {
+  background: #6a1b9a;
+  color: #fff;
+}
+
 .download-pdf-btn {
   background-color: #9b59b6;
   color: white;
@@ -84,6 +105,20 @@
 
 .report-table tr:hover {
   background-color: #f0e6f5;
+}
+
+.clickable-row {
+  cursor: pointer;
+}
+
+.back-btn {
+  background: transparent;
+  border: 1px solid #6a1b9a;
+  color: #6a1b9a;
+  cursor: pointer;
+  padding: 6px 10px;
+  border-radius: 6px;
+  margin: 10px 0;
 }
 
 .pagination {
