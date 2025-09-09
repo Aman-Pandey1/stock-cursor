@@ -20,6 +20,7 @@ import PurchaseManagement from './components/PurchaseManagement';
 import PurchaseReport from './components/PurchaseReport';
 import ReturnManagement from './components/ReturnManagement';
 import ReturnReport from './components/ReturnReport';
+import CustomerDetails from './components/CustomerDetails';
 
 
 function App() {
@@ -48,6 +49,7 @@ function App() {
               <Route path="/purchase-report" element={<PurchaseReport/>} />
               <Route path="/return" element={<ReturnManagement/>} />
               <Route path="/return-report" element={<ReturnReport/>} />
+              <Route path="/customer-details/:customerName" element={<CustomerDetails/>} />
             </Route>
           </Route>
         </Routes>

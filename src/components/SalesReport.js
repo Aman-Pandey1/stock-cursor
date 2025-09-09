@@ -1,3 +1,4 @@
+// Frontend: SalesReports.jsx
 "use client"
 
 import { useState, useEffect } from "react"
@@ -22,6 +23,7 @@ const SalesReports = () => {
   })
   const [currentView, setCurrentView] = useState("main")
   const [selectedSale, setSelectedSale] = useState(null)
+  const [customerDetails, setCustomerDetails] = useState(null)
   const navigate = useNavigate()
 
   useEffect(() => {
@@ -56,6 +58,7 @@ const SalesReports = () => {
         modelNo: sale.modelNo || sale.product?.modelNo || "N/A",
         totalSold: sale.quantity || sale.totalSold || 0,
         date: sale.date || sale.createdAt || new Date().toISOString(),
+        partyName: sale.partyName || "Walk-in Customer",
         productDetails: {
           size: sale.product?.size || sale.size,
           color: sale.product?.color || sale.color,
@@ -84,6 +87,7 @@ const SalesReports = () => {
           modelNo: item.modelNo || item.productDetails?.modelNo || "N/A",
           totalSold: item.totalSold || 0,
           date: item.date || new Date().toISOString(),
+          partyName: item.partyName || "Walk-in Customer",
           productDetails: item.productDetails || {},
         }))
 
@@ -151,6 +155,16 @@ const SalesReports = () => {
     }
   }
 
+  const fetchCustomerDetails = async (customerName) => {
+    try {
+      const res = await API.get(`/products/sales/customer/${encodeURIComponent(customerName)}`)
+      setCustomerDetails(res.data)
+      setCurrentView("customerDetails")
+    } catch (err) {
+      console.error("Error fetching customer details:", err)
+    }
+  }
+
   const generatePDF = (data, title, columns) => {
     if (!data || !Array.isArray(data) || data.length === 0) {
       return
@@ -181,6 +195,7 @@ const SalesReports = () => {
           if (key === "quantitysold") return item.totalSold
           if (key === "totalsales") return item.totalSales
           if (key === "itemssold") return item.itemsSold
+          if (key === "customer") return item.partyName
 
           return item.productDetails?.[key] || item[key] || ""
         })
@@ -217,11 +232,11 @@ const SalesReports = () => {
   }
 
   const downloadTodaySalesPDF = () => {
-    generatePDF(todaySales, "Today's", ["Product", "Model", "Quantity Sold"])
+    generatePDF(todaySales, "Today's", ["Customer", "Product", "Model", "Quantity Sold"])
   }
 
   const downloadWeeklySalesPDF = () => {
-    generatePDF(weeklySales, "Weekly", ["Date", "Product", "Model", "Quantity Sold"])
+    generatePDF(weeklySales, "Weekly", ["Date", "Customer", "Product", "Model", "Quantity Sold"])
   }
 
   const downloadDailyReportPDF = () => {
@@ -238,9 +253,14 @@ const SalesReports = () => {
     setCurrentView("saleDetails")
   }
 
+  const handleCustomerClick = (customerName) => {
+    fetchCustomerDetails(customerName)
+  }
+
   const goBackToMain = () => {
     setCurrentView("main")
     setSelectedSale(null)
+    setCustomerDetails(null)
   }
 
   const viewProductDetails = (productId) => {
@@ -280,6 +300,10 @@ const SalesReports = () => {
               <div className="info-item">
                 <label>Sale Date:</label>
                 <span>{format(new Date(sale.date), "dd MMM yyyy, HH:mm")}</span>
+              </div>
+              <div className="info-item">
+                <label>Customer:</label>
+                <span>{sale.partyName}</span>
               </div>
               <div className="info-item">
                 <label>Sale Type:</label>
@@ -327,13 +351,119 @@ const SalesReports = () => {
                     saleData,
                     `${sale.saleType === "today" ? "Today's" : "Weekly"}`,
                     sale.saleType === "today"
-                      ? ["Product", "Model", "Quantity Sold"]
-                      : ["Date", "Product", "Model", "Quantity Sold"],
+                      ? ["Customer", "Product", "Model", "Quantity Sold"]
+                      : ["Date", "Customer", "Product", "Model", "Quantity Sold"],
                   )
                 }}
                 className="action-btn secondary"
               >
                 📄 Download Sale PDF
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  const CustomerDetailsView = ({ customer, onBack }) => {
+    return (
+      <div className="sale-details-container">
+        <div className="sale-details-header">
+          <button onClick={onBack} className="back-btn">
+            ← Back to Sales
+          </button>
+          <h2>👤 Customer Details: {customer.customerName}</h2>
+        </div>
+
+        <div className="sale-details-content">
+          <div className="sale-info-card">
+            <h3>📊 Sales Summary</h3>
+            <div className="info-grid">
+              <div className="info-item">
+                <label>Total Transactions:</label>
+                <span>{customer.totalTransactions}</span>
+              </div>
+              <div className="info-item">
+                <label>Total Items Purchased:</label>
+                <span>{customer.totalItems} pieces</span>
+              </div>
+              <div className="info-item">
+                <label>First Purchase:</label>
+                <span>{format(new Date(customer.firstPurchase), "dd MMM yyyy")}</span>
+              </div>
+              <div className="info-item">
+                <label>Last Purchase:</label>
+                <span>{format(new Date(customer.lastPurchase), "dd MMM yyyy")}</span>
+              </div>
+            </div>
+          </div>
+
+          <div className="product-details-card">
+            <h3>🛒 Purchase History</h3>
+            {customer.sales && customer.sales.length > 0 ? (
+              <div className="sales-table">
+                <div className="table-header">
+                  <span>Date</span>
+                  <span>Product</span>
+                  <span>Model</span>
+                  <span>Quantity</span>
+                  <span>Notes</span>
+                </div>
+                {customer.sales.map((sale) => (
+                  <div key={sale._id} className="table-row">
+                    <span>{format(new Date(sale.date), "dd MMM yyyy")}</span>
+                    <span>{sale.companyName}</span>
+                    <span>{sale.modelNo}</span>
+                    <span className="sold-qty">{sale.quantity} pcs</span>
+                    <span className="notes-cell">{sale.notes || "-"}</span>
+                  </div>
+                ))}
+                <div className="table-footer">
+                  <span>Total:</span>
+                  <span></span>
+                  <span></span>
+                  <span className="total-qty">{customer.totalItems} pcs</span>
+                  <span></span>
+                </div>
+              </div>
+            ) : (
+              <p className="no-data">No purchase history found.</p>
+            )}
+          </div>
+
+          <div className="product-summary-card">
+            <h3>📊 Product Summary</h3>
+            {customer.productSummary && customer.productSummary.length > 0 ? (
+              <div className="sales-table">
+                <div className="table-header">
+                  <span>Product</span>
+                  <span>Model</span>
+                  <span>Total Quantity</span>
+                  <span>Transactions</span>
+                </div>
+                {customer.productSummary.map((product, index) => (
+                  <div key={index} className="table-row">
+                    <span>{product.companyName}</span>
+                    <span>{product.modelNo}</span>
+                    <span className="sold-qty">{product.totalQuantity} pcs</span>
+                    <span>{product.transactions.length}</span>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="no-data">No product summary available.</p>
+            )}
+          </div>
+
+          <div className="sale-actions-card">
+            <h3>⚡ Quick Actions</h3>
+            <div className="action-buttons">
+              <button 
+                onClick={() => generatePDF(customer.sales, `${customer.customerName} Purchase History`, ["Date", "Product", "Model", "Quantity", "Notes"])}
+                className="action-btn secondary"
+              >
+                📄 Download Customer Report
               </button>
             </div>
           </div>
@@ -355,6 +485,10 @@ const SalesReports = () => {
 
   if (currentView === "saleDetails" && selectedSale) {
     return <SaleDetailsView sale={selectedSale} onBack={goBackToMain} />
+  }
+
+  if (currentView === "customerDetails" && customerDetails) {
+    return <CustomerDetailsView customer={customerDetails} onBack={goBackToMain} />
   }
 
   return (
@@ -413,6 +547,7 @@ const SalesReports = () => {
             {todaySales.length > 0 ? (
               <div className="sales-table">
                 <div className="table-header">
+                  <span>Customer</span>
                   <span>Product</span>
                   <span>Model</span>
                   <span>Quantity Sold</span>
@@ -423,10 +558,13 @@ const SalesReports = () => {
                     className="table-row clickable-row"
                     onClick={() => handleSaleRowClick(sale, "today")}
                   >
+                    <span className="clickable-customer" onClick={(e) => {
+                      e.stopPropagation();
+                      handleCustomerClick(sale.partyName);
+                    }}>{sale.partyName}</span>
                     <span className="clickable-product">
                       {sale.companyName}
                       {sale.productDetails?.size && ` (Size: ${sale.productDetails.size})`}
-                      {sale.productDetails?.color && ` (Color: ${sale.productDetails.color})`}
                     </span>
                     <span>{sale.modelNo}</span>
                     <span className="sold-qty">{sale.totalSold} pcs</span>
@@ -434,6 +572,7 @@ const SalesReports = () => {
                 ))}
                 <div className="table-footer">
                   <span>Total:</span>
+                  <span></span>
                   <span></span>
                   <span className="total-qty">
                     {todaySales.reduce((sum, item) => sum + (item.totalSold || 0), 0)} pcs
@@ -451,8 +590,8 @@ const SalesReports = () => {
               <div className="sales-table">
                 <div className="table-header">
                   <span>Date</span>
+                  <span>Customer</span>
                   <span>Product</span>
-                  <span>Model</span>
                   <span>Quantity Sold</span>
                 </div>
                 {weeklySales.map((sale) => (
@@ -462,11 +601,11 @@ const SalesReports = () => {
                     onClick={() => handleSaleRowClick(sale, "weekly")}
                   >
                     <span>{format(new Date(sale.date), "MMM dd")}</span>
-                    <span>
-                      {sale.companyName}
-                      {sale.productDetails?.design && ` (Design: ${sale.productDetails.design})`}
-                    </span>
-                    <span>{sale.modelNo}</span>
+                    <span className="clickable-customer" onClick={(e) => {
+                      e.stopPropagation();
+                      handleCustomerClick(sale.partyName);
+                    }}>{sale.partyName}</span>
+                    <span>{sale.companyName}</span>
                     <span className="sold-qty">{sale.totalSold} pcs</span>
                   </div>
                 ))}
@@ -518,18 +657,20 @@ const SalesReports = () => {
             {recentOutflows.length > 0 ? (
               <div className="outflows-table">
                 <div className="table-header">
+                  <span>Customer</span>
                   <span>Product</span>
                   <span>Model</span>
                   <span>Qty Reduced</span>
-                  <span>Party</span>
                   <span>Time</span>
                 </div>
                 {recentOutflows.map((outflow) => (
                   <div key={outflow._id} className="table-row">
+                    <span className="clickable-customer" onClick={() => handleCustomerClick(outflow.partyName)}>
+                      {outflow.partyName}
+                    </span>
                     <span>{outflow.companyName}</span>
                     <span>{outflow.modelNo}</span>
                     <span className="reduced-qty">-{outflow.quantity} pcs</span>
-                    <span>{outflow.partyName || "N/A"}</span>
                     <span>{format(new Date(outflow.createdAt), "HH:mm")}</span>
                   </div>
                 ))}
